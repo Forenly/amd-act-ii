@@ -1,6 +1,12 @@
-# AMD Developer Hackathon: ACT II — lablab.ai × AMD
+# RoboPerceive — Robot Perception & VLA on AMD MI300X
 
 > Entry for the **AMD Developer Hackathon: ACT II** (lablab.ai × AMD). *"Build AI agents and high-performance AI apps on AMD GPUs in the cloud."* Online · build **Jul 6–11, 2026** · **$10,000 prize pool.**
+
+**RoboPerceive** is a vision-language-action (VLA) inference and evaluation system for autonomous robots, served on AMD Instinct MI300X GPUs via ROCm. Given a camera stream and a natural-language goal, the model interprets the scene and emits structured action commands — closing the perception→reasoning→action loop entirely on AMD hardware.
+
+## Community
+
+Building this in the open — join the team chat on Discord: https://discord.gg/wWwUrHhyqg
 
 ## The hackathon
 
@@ -10,13 +16,47 @@ Members of the AMD AI Developer Program get **$100 in Dev Cloud credits**, MI300
 
 ## What we're building
 
-_TBD — locked once full challenge details are announced._ An AI-agent system on the AMD GPU stack, MIT-licensed and open source per lablab.ai rules.
+A **robot-perception agent** that runs a VLA model (e.g. OpenVLA or a fine-tuned LLaVA-based policy) on **AMD Instinct MI300X** (192 GB VRAM, ROCm 7.x). The system takes image observations and a task description as input and outputs discrete robot actions (move, grasp, navigate). The MI300X's unified memory bandwidth makes it possible to run large vision-backbone + language-policy stacks in a single forward pass — something that previously required multi-GPU setups.
 
-> Forenly already operates an MI300X droplet on AMD Developer Cloud (ROCm 7.x), so the stack is familiar — the $100 credits stack onto existing workflow.
+The agent wraps the VLA model in a lightweight inference server, exposes a REST API, and connects to a simulated environment so the full perception→planning→action loop can be demonstrated live.
+
+Key components:
+- **VLA model inference** — open-source VLA checkpoint served with PyTorch on ROCm
+- **Perception pipeline** — frame decode, embedding, language conditioning on MI300X
+- **Action agent** — structured output parsing → robot command dispatch
+- **Sim environment** — lightweight PyBullet/MuJoCo sim for end-to-end demo
+- **Benchmarking harness** — throughput / latency report comparing FP16 vs INT8 on MI300X
+
+> AMD MI300X is the mandated compute platform. All training, fine-tuning, and inference run exclusively on AMD Developer Cloud / ROCm.
 
 ## Architecture
 
-See [`ARCHITECTURE.md`](./ARCHITECTURE.md) — agent system on the AMD Dev Cloud / ROCm / MI300X stack (refined once the concept is locked).
+See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for the full system diagram.
+
+```
+  Camera frames + task goal
+          │
+          ▼
+  ┌───────────────────────────────────┐
+  │  Perception pipeline              │
+  │  (vision encoder on MI300X/ROCm)  │
+  └──────────────┬────────────────────┘
+                 │  visual tokens
+                 ▼
+  ┌───────────────────────────────────┐
+  │  VLA policy model                 │
+  │  (language-conditioned, ROCm)     │  AMD Instinct MI300X
+  └──────────────┬────────────────────┘  192 GB VRAM · ROCm 7.x
+                 │  action logits
+                 ▼
+  ┌───────────────────────────────────┐
+  │  Action agent                     │
+  │  (parse → dispatch → sim step)    │
+  └───────────────────────────────────┘
+                 │
+                 ▼
+       Robot / simulation output
+```
 
 ## Requirements & source of truth
 
@@ -32,6 +72,6 @@ Full compiled brief — stack & access, prizes, submission fields, judging crite
 
 ## Status
 
-🚧 Enrolled, pre-kickoff. Full challenge TBA. Stack overlaps Forenly's existing MI300X workflow. See [`docs/HACKATHON_REQUIREMENTS.md`](./docs/HACKATHON_REQUIREMENTS.md).
+🚧 Enrolled, pre-kickoff. Concept: robot-perception VLA on AMD MI300X (ROCm). See [`docs/HACKATHON_REQUIREMENTS.md`](./docs/HACKATHON_REQUIREMENTS.md).
 
-— *Forenly · part of the [Cadence](https://github.com/Forenly) multi-hackathon initiative.*
+— *Part of the [Cadence](https://github.com/Forenly) multi-hackathon initiative.*
