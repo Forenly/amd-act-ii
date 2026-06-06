@@ -8,8 +8,6 @@
 - **Enrolled:** ~165 participants
 - **Prize pool:** **$10,000 total**
 
-> Internal note: Forenly already runs an **MI300X droplet on AMD Developer Cloud** (see AMD Dev Cloud memory). This hackathon's stack = exactly our existing GPU workflow; the $100 credits stack on top.
-
 ## Dates (Türkiye Standard Time)
 | Date | Event |
 |---|---|
@@ -64,4 +62,3 @@ Everyone with a passion for AI is welcome, any experience level. Solo or team (f
 - [ ] **AI agent concept** — once full challenge details drop.
 - [ ] Sign up for **AMD AI Developer Program** to unlock the $100 credits + approval.
 - [ ] Confirm exact submission deadline on the Schedule tab (Jul 11 at capture).
-- [ ] Reuse Forenly's existing MI300X workflow vs. fresh Dev Cloud instance on the $100 credits.
