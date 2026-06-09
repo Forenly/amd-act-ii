@@ -1,5 +1,10 @@
 # RoboPerceive — Robot Perception & VLA on AMD MI300X
 
+> [!IMPORTANT]
+> ### 🏆 GRAND PRIZE POOL: Elite Developer GPUs & Cash!
+> **Prizes:** State-of-the-art AMD Instinct / Radeon hardware & cash rewards to accelerate our AI models locally! Let's unlock raw performance! 🚀🔌
+
+
 > Entry for the **AMD Developer Hackathon: ACT II** (lablab.ai × AMD). *"Build AI agents and high-performance AI apps on AMD GPUs in the cloud."* Online · build **Jul 6–11, 2026** · **$10,000 prize pool.**
 
 **RoboPerceive** is a vision-language-action (VLA) inference and evaluation system for autonomous robots, served on AMD Instinct MI300X GPUs via ROCm. Given a camera stream and a natural-language goal, the model interprets the scene and emits structured action commands — closing the perception→reasoning→action loop entirely on AMD hardware.
