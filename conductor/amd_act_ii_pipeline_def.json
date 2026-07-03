@@ -20,7 +20,7 @@
     {"name": "notify_build1", "taskReferenceName": "notify_build1", "type": "HTTP",
      "inputParameters": {"http_request": {"uri": "${workflow.input.discord_webhook}", "method": "POST", "contentType": "application/json",
        "body": {"content": ":one: **ML** <@1504518245045108830> — GrootNet `${workflow.workflowId}`: **Build Sprint 1 — agent core** basladi."}}}},
-    {"name": "build_agent_core", "taskReferenceName": "build_agent_core", "type": "SIMPLE",
+    {"name": "build_agent_core", "taskReferenceName": "build_agent_core", "type": "HUMAN",
      "inputParameters": {"role": "ml", "artifact": "multi-agent robotic brain core", "gpu": "MI300X/ROCm"}},
     {"name": "agent_core_gate", "taskReferenceName": "agent_core_gate", "type": "HUMAN",
      "inputParameters": {"role": "lead", "accountable": "lead", "step": "agent-core sign-off"}},
@@ -30,9 +30,9 @@
        "body": {"content": ":two: **ML+Integration** <@1504518245045108830> <@1509893434868109464> — GrootNet `${workflow.workflowId}`: **Build Sprint 2 — ROCm serving + decentralized mesh** (paralel)."}}}},
     {"name": "build_sprint2", "taskReferenceName": "build_sprint2", "type": "FORK_JOIN",
      "forkTasks": [
-       [{"name": "rocm_serving", "taskReferenceName": "rocm_serving", "type": "SIMPLE",
+       [{"name": "rocm_serving", "taskReferenceName": "rocm_serving", "type": "HUMAN",
          "inputParameters": {"role": "ml", "task": "serve agents across MI300X fleet via ROCm"}}],
-       [{"name": "integration_mesh", "taskReferenceName": "integration_mesh", "type": "SIMPLE",
+       [{"name": "integration_mesh", "taskReferenceName": "integration_mesh", "type": "HUMAN",
          "inputParameters": {"role": "integration", "task": "wire decentralized GrootNet mesh end-to-end"}}]
      ]},
     {"name": "build_sprint2_join", "taskReferenceName": "build_sprint2_join", "type": "JOIN",
@@ -43,7 +43,7 @@
     {"name": "notify_demo", "taskReferenceName": "notify_demo", "type": "HTTP",
      "inputParameters": {"http_request": {"uri": "${workflow.input.discord_webhook}", "method": "POST", "contentType": "application/json",
        "body": {"content": ":clapper: **Lead + Associate Lead** <@1486073506335817748> <@876814494762946590> — GrootNet `${workflow.workflowId}`: **demo video + lablab.ai submission** (Lead lablab profilini yonetir)."}}}},
-    {"name": "demo_prep", "taskReferenceName": "demo_prep", "type": "SIMPLE",
+    {"name": "demo_prep", "taskReferenceName": "demo_prep", "type": "HUMAN",
      "inputParameters": {"role": "lead+associate-lead", "artifact": "3-min demo video + lablab.ai submission draft"}},
     {"name": "final_gate", "taskReferenceName": "final_gate", "type": "HUMAN",
      "inputParameters": {"role": "lead", "accountable": "lead", "step": "final sign-off before submit"}},
@@ -53,7 +53,7 @@
      "decisionCases": {"reject": [{"name": "final_reject", "taskReferenceName": "final_reject", "type": "TERMINATE",
         "inputParameters": {"terminationStatus": "FAILED", "terminationReason": "final review rejected -> demo prep"}}]}, "defaultCase": []},
 
-    {"name": "submit", "taskReferenceName": "submit", "type": "SIMPLE",
+    {"name": "submit", "taskReferenceName": "submit", "type": "HUMAN",
      "inputParameters": {"role": "lead", "target": "lablab.ai submission"}},
     {"name": "notify_done", "taskReferenceName": "notify_done", "type": "HTTP",
      "inputParameters": {"http_request": {"uri": "${workflow.input.discord_webhook}", "method": "POST", "contentType": "application/json",
