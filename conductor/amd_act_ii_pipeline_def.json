@@ -1,0 +1,245 @@
+{
+  "name": "amd_act_ii_pipeline",
+  "version": 1,
+  "schemaVersion": 2,
+  "ownerEmail": "hi@forenly.ai",
+  "description": "AMD ACT II \u2014 GrootNet hackathon delivery (build Jul 6-11). 5 roles: Platform/Infra Eng (AMD cloud/MI300X/ROCm) -> ML/Agent Eng -> Integration Eng -> Demo/Pitch Owner -> Team Lead (Accountable, hi@forenly.ai). Each handoff notifies Discord #amd-act. Track by correlationId=amd-act-ii.",
+  "inputParameters": [
+    "team",
+    "discord_webhook"
+  ],
+  "tasks": [
+    {
+      "name": "notify_setup",
+      "taskReferenceName": "notify_setup",
+      "type": "HTTP",
+      "inputParameters": {
+        "http_request": {
+          "uri": "${workflow.input.discord_webhook}",
+          "method": "POST",
+          "contentType": "application/json",
+          "body": {
+            "content": ":gear: **Platform/Infra Engineer** \u2014 GrootNet run `${workflow.workflowId}`: **pre-hack setup** bekliyor (lablab.ai kayit, AMD Developer Cloud, krediler, MI300X/ROCm env)."
+          }
+        }
+      }
+    },
+    {
+      "name": "prehack_setup_gate",
+      "taskReferenceName": "prehack_setup_gate",
+      "type": "HUMAN",
+      "inputParameters": {
+        "role": "platform-engineer",
+        "accountable": "team-lead",
+        "step": "pre-hack setup",
+        "checklist": "lablab.ai team registered; AMD Developer Cloud active; credits confirmed; MI300X/ROCm env ready"
+      }
+    },
+    {
+      "name": "setup_router",
+      "taskReferenceName": "setup_router",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "decision",
+      "inputParameters": {
+        "decision": "${prehack_setup_gate.output.decision}"
+      },
+      "decisionCases": {
+        "reject": [
+          {
+            "name": "setup_block",
+            "taskReferenceName": "setup_block",
+            "type": "TERMINATE",
+            "inputParameters": {
+              "terminationStatus": "FAILED",
+              "terminationReason": "setup blocked (cloud/credit/registration) -> Platform Eng"
+            }
+          }
+        ]
+      },
+      "defaultCase": []
+    },
+    {
+      "name": "notify_build1",
+      "taskReferenceName": "notify_build1",
+      "type": "HTTP",
+      "inputParameters": {
+        "http_request": {
+          "uri": "${workflow.input.discord_webhook}",
+          "method": "POST",
+          "contentType": "application/json",
+          "body": {
+            "content": ":one: **ML/Agent Engineer** \u2014 GrootNet run `${workflow.workflowId}`: **Build Sprint 1 \u2014 agent core** basladi."
+          }
+        }
+      }
+    },
+    {
+      "name": "build_agent_core",
+      "taskReferenceName": "build_agent_core",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "role": "ml-engineer",
+        "artifact": "multi-agent robotic brain core",
+        "gpu": "MI300X/ROCm"
+      }
+    },
+    {
+      "name": "agent_core_gate",
+      "taskReferenceName": "agent_core_gate",
+      "type": "HUMAN",
+      "inputParameters": {
+        "role": "team-lead",
+        "accountable": "team-lead",
+        "step": "agent-core sign-off",
+        "artifact": "${build_agent_core.output}"
+      }
+    },
+    {
+      "name": "notify_build2",
+      "taskReferenceName": "notify_build2",
+      "type": "HTTP",
+      "inputParameters": {
+        "http_request": {
+          "uri": "${workflow.input.discord_webhook}",
+          "method": "POST",
+          "contentType": "application/json",
+          "body": {
+            "content": ":two: **ML + Integration** \u2014 GrootNet run `${workflow.workflowId}`: **Build Sprint 2 \u2014 ROCm serving + decentralized mesh** (paralel)."
+          }
+        }
+      }
+    },
+    {
+      "name": "build_sprint2",
+      "taskReferenceName": "build_sprint2",
+      "type": "FORK_JOIN",
+      "forkTasks": [
+        [
+          {
+            "name": "rocm_serving",
+            "taskReferenceName": "rocm_serving",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "role": "ml-engineer",
+              "task": "serve agents across MI300X fleet via ROCm"
+            }
+          }
+        ],
+        [
+          {
+            "name": "integration_mesh",
+            "taskReferenceName": "integration_mesh",
+            "type": "SIMPLE",
+            "inputParameters": {
+              "role": "integration-engineer",
+              "task": "wire decentralized GrootNet mesh end-to-end"
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "name": "build_sprint2_join",
+      "taskReferenceName": "build_sprint2_join",
+      "type": "JOIN",
+      "joinOn": [
+        "rocm_serving",
+        "integration_mesh"
+      ]
+    },
+    {
+      "name": "integration_gate",
+      "taskReferenceName": "integration_gate",
+      "type": "HUMAN",
+      "inputParameters": {
+        "role": "integration-engineer",
+        "accountable": "team-lead",
+        "step": "integration sign-off (e2e demo runs)"
+      }
+    },
+    {
+      "name": "notify_demo",
+      "taskReferenceName": "notify_demo",
+      "type": "HTTP",
+      "inputParameters": {
+        "http_request": {
+          "uri": "${workflow.input.discord_webhook}",
+          "method": "POST",
+          "contentType": "application/json",
+          "body": {
+            "content": ":clapper: **Demo/Pitch Owner** \u2014 GrootNet run `${workflow.workflowId}`: **3-dk demo video + submission** bekliyor (hackathon burada kazanilir)."
+          }
+        }
+      }
+    },
+    {
+      "name": "demo_prep",
+      "taskReferenceName": "demo_prep",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "role": "demo-owner",
+        "artifact": "3-min demo video + lablab.ai submission draft"
+      }
+    },
+    {
+      "name": "final_gate",
+      "taskReferenceName": "final_gate",
+      "type": "HUMAN",
+      "inputParameters": {
+        "role": "team-lead",
+        "accountable": "team-lead",
+        "step": "final sign-off before submit",
+        "video": "${demo_prep.output}"
+      }
+    },
+    {
+      "name": "final_router",
+      "taskReferenceName": "final_router",
+      "type": "SWITCH",
+      "evaluatorType": "value-param",
+      "expression": "decision",
+      "inputParameters": {
+        "decision": "${final_gate.output.decision}"
+      },
+      "decisionCases": {
+        "reject": [
+          {
+            "name": "final_reject",
+            "taskReferenceName": "final_reject",
+            "type": "TERMINATE",
+            "inputParameters": {
+              "terminationStatus": "FAILED",
+              "terminationReason": "final review rejected -> demo prep"
+            }
+          }
+        ]
+      },
+      "defaultCase": []
+    },
+    {
+      "name": "submit",
+      "taskReferenceName": "submit",
+      "type": "SIMPLE",
+      "inputParameters": {
+        "role": "team-lead",
+        "target": "lablab.ai submission"
+      }
+    },
+    {
+      "name": "notify_done",
+      "taskReferenceName": "notify_done",
+      "type": "HTTP",
+      "inputParameters": {
+        "http_request": {
+          "uri": "${workflow.input.discord_webhook}",
+          "method": "POST",
+          "contentType": "application/json",
+          "body": {
+            "content": ":checkered_flag: **SUBMITTED** \u2014 GrootNet run `${workflow.workflowId}` teslim edildi. GG team! :trophy:"
+          }
+        }
+      }
+    }
+  ]
+}
