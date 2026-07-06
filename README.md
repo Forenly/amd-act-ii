@@ -6,9 +6,9 @@
 
 > Entry for the **AMD Developer Hackathon: ACT II** (lablab.ai × AMD). *"Build AI agents and high-performance AI apps on AMD GPUs in the cloud."* Online · build **Jul 6–11, 2026** · **$10,000 prize pool.**
 
-**GrootNet** is a decentralized, distributed robotic brain network designed for autonomous robot skill acquisition, served across a fleet of AMD Instinct MI300X GPUs via ROCm. 
+**GrootNet** is a decentralized, distributed robotic brain network for autonomous robot skill acquisition, served across a fleet of AMD Instinct MI300X GPUs via ROCm.
 
-Instead of deploying a single agent on a single GPU, **GrootNet** distributes specialized **Groot 1.7** VLA (Vision-Language-Action) policy models across the cloud-allocated MI300X instances of our entire team. A central, physics-accurate **MuJoCo simulation** of our robot (the **Unitree G1**) runs in real-time and queries these distributed expert nodes to make decisions, execute complex tasks, and collaboratively train new skills.
+Instead of deploying one monolithic model on one GPU, **GrootNet** splits the brain into specialized **Groot 1.7** VLA (Vision-Language-Action) expert nodes — one per team member's cloud-allocated MI300X — and stitches them together at inference time into a single composite **Frankenstein Model Node**. Each member's expert node connects to this central Frankenstein node, which fans out every task, then fuses the experts' returned action logits into one unified command. A brain assembled from many distributed parts — hence *Frankenstein*.
 
 ## Community
 
@@ -22,18 +22,17 @@ Members of the AMD AI Developer Program get **$100 in Dev Cloud credits**, MI300
 
 ## What we're building
 
-We are building a **peer-to-peer network of specialized Groot 1.7 robot-perception nodes** that run large VLA models (e.g., fine-tuned LLaVA-based policies or OpenVLA) on **AMD Instinct MI300X** instances (192 GB VRAM, ROCm 7.x). By utilizing each member's $100 AMD credit, we spin up a distributed cluster of specialized neural experts:
+We are building a **peer-to-peer network of specialized Groot 1.7 expert nodes** fused by a central **Frankenstein Model Node**. Each expert runs a large VLA model (e.g., fine-tuned LLaVA-based policies or OpenVLA) on an **AMD Instinct MI300X** instance (192 GB VRAM, ROCm 7.x). By utilizing each member's $100 AMD credit, we spin up a distributed cluster of specialized neural experts:
 
-* **Node A (Visual Search Expert):** Focuses on camera observation analysis, frame decoding, and 3D coordinate detection on MI300X.
-* **Node B (Locomotion Expert):** Computes high-frequency, physics-accurate joint angles and balance metrics for walking.
-* **Node C (Manipulation Expert):** Coordinates bimanual hand and arm trajectory control for dexterous interaction.
+* **Node A (Visual Search Expert):** Camera observation analysis, frame decoding, and 3D coordinate detection on MI300X.
+* **Node B (Locomotion Expert):** High-frequency joint angles and balance metrics for walking.
+* **Node C (Manipulation Expert):** Bimanual hand and arm trajectory control for dexterous interaction.
 
-A central physics-accurate **MuJoCo simulation environment** runs end-to-end trials. The robot continuously streams its sensory context and queries these distributed expert nodes, creating a **collaborative, closed-loop distributed robotic brain** powered entirely by high-performance AMD hardware.
+At the center, the **Frankenstein Model Node** stitches these distributed experts into one brain: for each task goal + observation it fans out to the relevant experts and **fuses their returned action logits** into a single unified command (MoE-style late fusion / weighted gating). Every member's node connects to this Frankenstein node, creating a **collaborative, decentralized robotic brain** powered entirely by high-performance AMD hardware — no physics simulator in the loop.
 
 Key components:
 - **Distributed VLA Inference** — Multiple decentralized Groot 1.7 expert nodes served with PyTorch on ROCm.
-- **Smart Skill Router** — Lightweight orchestrator in the MuJoCo simulator that routes task requests to relevant nodes in real-time.
-- **Physics Sandbox** — End-to-end simulation of the Unitree G1 robot completing multi-step tasks (e.g., finding and activating abajurs/lamps).
+- **Frankenstein Model Node** — Central fusion hub that stitches the distributed experts into one brain, routing each task to the relevant experts and fusing their action logits (MoE gating / weighted late fusion) into a unified command.
 - **Skill Co-Training & Adaptation** — Saving successful trajectory data to dynamically fine-tune expert models on their respective MI300X GPUs via LoRA.
 - **Performance Harness** — Throughput and latency benchmarking comparing FP16 vs INT8 execution on MI300X.
 
@@ -42,15 +41,16 @@ Key components:
 See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for the full system diagram.
 
 ```
-   Natural-language task goal + MuJoCo telemetry
+   Natural-language task goal + observation (image/state)
                          │
                          ▼
              ┌────────────────────────┐
-             │   Smart Skill Router   │
-             │ (MuJoCo Physics Sandbox│
+             │  Frankenstein Model     │
+             │  Node (Fusion Hub)      │
+             │  route → fuse logits    │
              └───────────┬────────────┘
-                         │
-        ┌────────────────┼────────────────┬────────────────┐
+                         │ fan-out (REST/gRPC)          ▲ fuse action logits
+        ┌────────────────┼────────────────┬────────────┴───┐
         ▼ (Query Expert)  ▼ (Query Expert) ▼ (Query Expert)  ▼ (Query Expert)
    ┌───────────┐    ┌───────────┐    ┌───────────┐    ┌───────────┐
    │  Node A   │    │  Node B   │    │  Node C   │    │  Node D   │
@@ -76,6 +76,6 @@ Full compiled brief — stack & access, prizes, submission fields, judging crite
 
 ## Status
 
-🚧 Enrolled, pre-kickoff. Concept: Decentralized robot-perception VLA on AMD MI300X (ROCm). See [`docs/HACKATHON_REQUIREMENTS.md`](./docs/HACKATHON_REQUIREMENTS.md).
+🚧 Enrolled, pre-kickoff. Concept: Decentralized VLA expert nodes fused by a central **Frankenstein Model Node** on AMD MI300X (ROCm) — no physics simulator. See [`docs/HACKATHON_REQUIREMENTS.md`](./docs/HACKATHON_REQUIREMENTS.md).
 
 — *Part of the [Cadence](https://github.com/Forenly) multi-hackathon initiative.*

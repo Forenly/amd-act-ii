@@ -1,20 +1,20 @@
 # Architecture — GrootNet (AMD Developer Hackathon: ACT II)
 
-> Decentralized multi-agent robotic brain network and vision-language-action (VLA) inference on distributed **AMD Instinct MI300X** instances via ROCm 7.x. 
+> Decentralized multi-agent robotic brain and vision-language-action (VLA) inference on distributed **AMD Instinct MI300X** instances via ROCm 7.x. Specialized expert nodes are stitched into one composite brain by a central **Frankenstein Model Node** — no physics simulator in the loop.
 
 ---
 
 ## High-level distributed flow
 
 ```
-   Natural-language task goal + Robot sensory stream
+   Natural-language task goal + observation (image / robot state)
                          │
                          ▼
    ┌────────────────────────────────────────────────────────┐
-   │  Central Simulation Sandbox (MuJoCo)                   │
-   │  - Renders environment camera observation frames        │
-   │  - Captures 12-DOF joint angles & physical state       │
-   │  - Houses the Smart Skill Router (Orchestration Hub)   │
+   │  Frankenstein Model Node (Central Fusion Hub)          │
+   │  - Receives task goal + observation                     │
+   │  - Routes to the relevant expert nodes (MoE gating)     │
+   │  - Stitches distributed experts into one brain          │
    └─────────────────────────┬──────────────────────────────┘
                              │
             ┌────────────────┼────────────────┐
@@ -28,10 +28,11 @@
    └────────┬───────┘└────────┬───────┘└────────┬───────┘
             │                 │                 │
             └─────────────────┼─────────────────┘
-                              │ Return Action Command Logits
+                              │ Return per-expert action logits
                               ▼
    ┌────────────────────────────────────────────────────────┐
-   │  Action execution in MuJoCo & Trajectory collection    │
+   │  Frankenstein Fusion → single unified action command   │
+   │  - Weighted late fusion / MoE gating of expert logits  │
    └─────────────────────────┬──────────────────────────────┘
                              │
                              ▼
@@ -48,11 +49,10 @@
 
 | Component | Role | Compute Platform |
 |---|---|---|
-| **Smart Skill Router** | Acts as the orchestrator inside the MuJoCo simulation, routing sensory inputs to the appropriate VLA expert node based on the text goal. | CPU/Cloud Host |
+| **Frankenstein Model Node** | Central fusion hub: receives the task goal + observation, routes to the relevant VLA expert nodes (MoE gating), and stitches their returned action logits into one unified command. Every member's expert node connects here. | AMD Instinct MI300X / Cloud Host |
 | **Node A (Visual Search)** | Decodes frames, runs vision backbones (e.g. SigLIP / ViT), and localizes objects (like abajurs/lamps) in 3D coordinate space. | AMD Instinct MI300X |
 | **Node B (Locomotion)** | Serves joint control networks to generate high-frequency leg joint angles (using pre-trained gymnasium policy networks). | AMD Instinct MI300X |
 | **Node C (Manipulation)** | Serves hand/arm VLA model experts to control bimanual tasks (grasping, reaching, operating switches). | AMD Instinct MI300X |
-| **MuJoCo Simulation Sandbox** | Lightweight, high-fidelity physical sandbox running the Unitree G1 robot model in a realistic apartment environment. | CPU/Cloud Host |
 | **Distributed LoRA Tuner** | Executes background parameter-efficient fine-tuning on successful trajectories to adapt and improve skills over time. | AMD Instinct MI300X (ROCm) |
 
 ---
@@ -72,5 +72,5 @@
 ## Architectural advantages on AMD MI300X
 
 1. **Elimination of Model Parallelism:** Standard VLA models require deep multi-modal stacks (giant vision encoders coupled with LLM policy backbones like Llama-3). Traditionally, this required model split over multiple small-VRAM GPUs. The MI300X's massive **192 GB unified memory pool** lets us fit the entire encoder-decoder stack in a single GPU pass with zero communication overhead.
-2. **Distributed Reliability:** By distributing the specialized expert models across different team members' nodes, we build a redundant, highly-available robotic brain. If one node fails or undergoes fine-tuning, the orchestrator can fallback to standard heuristics or general VLA nodes.
+2. **Distributed Reliability:** By distributing the specialized expert models across different team members' nodes, we build a redundant, highly-available robotic brain. If one node fails or undergoes fine-tuning, the Frankenstein node can fall back to standard heuristics or general VLA nodes.
 3. **Decentralized Co-Training:** Training robotic skills is extremely compute-intensive. By distributing the training data backoff, each member's MI300X runs parallel LoRA fine-tuning for their specialized skill, allowing the entire system to develop capabilities in a decentralized fashion.
